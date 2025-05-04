@@ -1,3 +1,4 @@
+import { initDb } from "@/services/db";
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 
@@ -5,6 +6,7 @@ export default function Index() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    
     const timer = setTimeout(() => {
       setIsReady(true);
     }, 100); // Minimal delay
@@ -14,5 +16,5 @@ export default function Index() {
 
   if (!isReady) return null;
 
-  return <Redirect href="/SplashScreen" />;
+  return <Redirect href="/HomeScreen" />;
 }

@@ -1,40 +1,33 @@
+import CustomTabBar from "@/components/CustomTabBar";
 import { Tabs } from "expo-router";
 import React from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const _layout = () => {
   return (
-    <Tabs>
-        <Tabs.Screen
-            name="HomeScreen"
-            options={{
-            title: "Home",
-            headerShown: false,
-            }}
-        />
-        <Tabs.Screen
-            name="HistoryScreen"
-            options={{
-            title: "History",
-            // tabBarIcon: "history",
-            headerShown: false,
-            }}
-        />
-        <Tabs.Screen
-            name="ProfileScreen"
-            options={{
-            title: "Profile",
-            // tabBarIcon: "user",
-            headerShown: false,
-            }}
-        />
-        <Tabs.Screen
-            name="SettingsScreen"
-            options={{
-            title: "Settings",
-            // tabBarIcon: "settings",
-            headerShown: false,
-            }}
-        />
+    <Tabs
+      tabBar={(props) => (
+        <SafeAreaProvider>
+          <CustomTabBar {...props} />
+        </SafeAreaProvider>
+      )}
+    >
+      <Tabs.Screen
+        name="HomeScreen"
+        options={{ title: "Home", headerShown: false }}
+      />
+      <Tabs.Screen
+        name="HistoryScreen"
+        options={{ title: "History", headerShown: false }}
+      />
+      <Tabs.Screen
+        name="ProfileScreen"
+        options={{ title: "Profile", headerShown: false }}
+      />
+      <Tabs.Screen
+        name="SettingsScreen"
+        options={{ title: "Settings", headerShown: false }}
+      />
     </Tabs>
   );
 };
