@@ -1,15 +1,24 @@
-import React from "react";
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
-import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import { useRouter } from "expo-router";
+import React from "react";
+import { Controller, useForm } from "react-hook-form";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import * as yup from "yup";
 
 const schema = yup.object().shape({
-  name: yup.string().required("Name is required"),
-  email: yup.string().email("Invalid email").required("Email is required"),
-  password: yup.string().min(6, "Minimum 6 characters").required("Password is required"),
+  username: yup.string().required("UserName is required"),
+  password: yup
+    .string()
+    .min(6, "Minimum 6 characters")
+    .required("Password is required"),
 });
 
 export default function RegisterScreen() {
@@ -45,40 +54,24 @@ export default function RegisterScreen() {
         {/* Name Field */}
         <Controller
           control={control}
-          name="name"
+          name="username"
           render={({ field: { onChange, value } }) => (
             <TextInput
               className="bg-white dark:bg-gray-800 text-black dark:text-white px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600"
-              placeholder="Full Name"
+              placeholder="username"
               placeholderTextColor="#aaa"
               value={value}
               onChangeText={onChange}
             />
           )}
         />
-        {errors.name && (
-          <Text className="text-red-500 font-medium">{errors.name.message}</Text>
+        {errors.username && (
+          <Text className="text-red-500 font-medium">
+            {errors.username.message}
+          </Text>
         )}
-
-        {/* Email Field */}
-        <Controller
-          control={control}
-          name="email"
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              className="bg-white dark:bg-gray-800 text-black dark:text-white px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600"
-              placeholder="Email"
-              placeholderTextColor="#aaa"
-              value={value}
-              onChangeText={onChange}
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
-          )}
-        />
-        {errors.email && (
-          <Text className="text-red-500 font-medium">{errors.email.message}</Text>
-        )}
+        {/* below space ------------ */}
+        <View className="h-4" />
 
         {/* Password Field */}
         <Controller
@@ -96,7 +89,9 @@ export default function RegisterScreen() {
           )}
         />
         {errors.password && (
-          <Text className="text-red-500 font-medium">{errors.password.message}</Text>
+          <Text className="text-red-500 font-medium">
+            {errors.password.message}
+          </Text>
         )}
 
         {/* Register Button */}

@@ -1,14 +1,24 @@
-import React from "react";
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
-import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import { useRouter } from "expo-router";
+import React from "react";
+import { Controller, useForm } from "react-hook-form";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import * as yup from "yup";
 
 const schema = yup.object().shape({
-  email: yup.string().email("Invalid email").required("Email is required"),
-  password: yup.string().min(6, "Minimum 6 characters").required("Password is required"),
+  username: yup.string().required("Username is required"),
+  password: yup
+    .string()
+    .min(6, "Minimum 6 characters")
+    .required("Password is required"),
 });
 
 export default function LoginScreen() {
@@ -41,25 +51,28 @@ export default function LoginScreen() {
       </Animated.Text>
 
       <View className="w-full space-y-4">
-        {/* Email Field */}
+        {/* UserName Field */}
         <Controller
           control={control}
-          name="email"
+          name="username"
           render={({ field: { onChange, value } }) => (
             <TextInput
               className="bg-white dark:bg-gray-800 text-black dark:text-white px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600"
-              placeholder="Email"
+              placeholder="username"
               placeholderTextColor="#aaa"
               value={value}
               onChangeText={onChange}
               autoCapitalize="none"
-              keyboardType="email-address"
             />
           )}
         />
-        {errors.email && (
-          <Text className="text-red-500 font-medium">{errors.email.message}</Text>
+        {errors.username && (
+          <Text className="text-red-500 font-medium">
+            {errors.username.message}
+          </Text>
         )}
+        {/* below space ------------ */}
+        <View className="h-4" />
 
         {/* Password Field */}
         <Controller
@@ -77,7 +90,9 @@ export default function LoginScreen() {
           )}
         />
         {errors.password && (
-          <Text className="text-red-500 font-medium">{errors.password.message}</Text>
+          <Text className="text-red-500 font-medium">
+            {errors.password.message}
+          </Text>
         )}
 
         {/* Login Button */}

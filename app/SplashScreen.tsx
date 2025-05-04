@@ -35,7 +35,7 @@ export default function SplashScreen() {
             if (isLoggedIn) {
               router.replace("/(tabs)/HomeScreen");
             } else {
-              router.replace("/Auth/LoginScreen");
+              router.push("/Auth/LoginScreen");
             }
           }}
         >
