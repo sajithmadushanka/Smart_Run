@@ -1,17 +1,10 @@
 import CustomTabBar from "@/components/CustomTabBar";
 import { Tabs } from "expo-router";
 import React from "react";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const _layout = () => {
   return (
-    <Tabs
-      tabBar={(props) => (
-        <SafeAreaProvider>
-          <CustomTabBar {...props} />
-        </SafeAreaProvider>
-      )}
-    >
+    <Tabs tabBar={(props) => <CustomTabBar {...props} />}>
       <Tabs.Screen
         name="HomeScreen"
         options={{ title: "Home", headerShown: false }}
