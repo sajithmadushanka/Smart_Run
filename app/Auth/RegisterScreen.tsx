@@ -1,8 +1,11 @@
+import { useUser } from "@/context/UserContext";
+import { registerUser } from "@/services/userService";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Text,
@@ -23,7 +26,7 @@ const schema = yup.object().shape({
 
 export default function RegisterScreen() {
   const router = useRouter();
-
+  const { login } = useUser();
   const {
     control,
     handleSubmit,
@@ -32,9 +35,16 @@ export default function RegisterScreen() {
     resolver: yupResolver(schema),
   });
 
-  const onRegister = (data: any) => {
-    // TODO: Implement actual registration logic
-    console.log("Register Data:", data);
+  const onRegister = async (data: any) => {
+    const { username, password } = data;
+    const res = await registerUser(username, password);
+    console.log("Register Response:", res);
+    if (!res.success) {
+      Alert.alert("Error", res.error);
+      return;
+    }
+    login(username);
+    console.log("User registered successfully");
     router.replace("/(tabs)/HomeScreen");
   };
 

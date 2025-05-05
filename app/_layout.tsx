@@ -1,28 +1,42 @@
-// app/_layout.tsx
+import { UserProvider } from "@/context/UserContext";
 import { initDb } from "@/services/db";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { useEffect } from "react";
 import "./global.css";
+import { StatusBar, useColorScheme } from "react-native";
 
 export default function RootLayout() {
+  const colorScheme = useColorScheme();
   const [fontsLoaded] = useFonts({
     Urbanist: require("../assets/fonts/Urbanist/static/Urbanist-Regular.ttf"),
     "Urbanist-Bold": require("../assets/fonts/Urbanist/static/Urbanist-Bold.ttf"),
   });
+
   useEffect(() => {
-    initDb().catch((err) => console.error("DB Init Error", err));
+    const initializeDatabase = async () => {
+      try {
+        await initDb();
+        console.log("Database initialized successfully");
+      } catch (error) {
+        console.error("Error initializing database:", error);
+      }
+    };
+
+    initializeDatabase();
   }, []);
 
-  if (!fontsLoaded) return null; // or show a fallback screen
+  if (!fontsLoaded) return null;
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      {/* <Stack.Screen name="SplashScreen" /> */}
-      {/* <Stack.Screen name="HomeScreen" />
-      <Stack.Screen name="Auth/LoginScreen" />
-      <Stack.Screen name="Auth/RegisterScreen" /> */}
-      <Stack.Screen name="(tabs)" />
-    </Stack>
+    <>
+      <StatusBar
+        barStyle={colorScheme === "dark" ? "light-content" : "dark-content"}
+        backgroundColor={colorScheme === "dark" ? "#0d1117" : "#ffffff"}
+      />
+      <UserProvider>
+        <Stack screenOptions={{ headerShown: false }} />
+      </UserProvider>
+    </>
   );
 }

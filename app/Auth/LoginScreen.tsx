@@ -1,8 +1,11 @@
+import { useUser } from "@/context/UserContext";
+import { loginUser } from "@/services/userService";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "expo-router";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Text,
@@ -23,7 +26,7 @@ const schema = yup.object().shape({
 
 export default function LoginScreen() {
   const router = useRouter();
-
+const { login } = useUser();
   const {
     control,
     handleSubmit,
@@ -32,9 +35,15 @@ export default function LoginScreen() {
     resolver: yupResolver(schema),
   });
 
-  const onLogin = (data: any) => {
-    // TODO: Implement actual login logic
-    console.log("Login Data:", data);
+  const onLogin = async (data: any) => {
+    const { username, password } = data;
+    const user = await loginUser(username, password);
+    if (!user) {
+      Alert.alert("Error", "Invalid username or password");
+      return;
+    }
+    login(user.username);
+    console.log("User logged in successfully");
     router.replace("/(tabs)/HomeScreen");
   };
 

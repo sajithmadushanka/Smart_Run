@@ -1,20 +1,11 @@
-import { initDb } from "@/services/db";
-import { Redirect } from "expo-router";
-import { useEffect, useState } from "react";
+import { router } from "expo-router";
+import { useEffect } from "react";
 
 export default function Index() {
-  const [isReady, setIsReady] = useState(false);
-
   useEffect(() => {
-    
-    const timer = setTimeout(() => {
-      setIsReady(true);
-    }, 100); // Minimal delay
-
-    return () => clearTimeout(timer);
+    // Redirect to your splash screen
+    router.replace("/SplashScreen");
   }, []);
 
-  if (!isReady) return null;
-
-  return <Redirect href="/HomeScreen" />;
+  return null;
 }

@@ -10,7 +10,7 @@ const _layout = () => {
         options={{ title: "Home", headerShown: false }}
       />
       <Tabs.Screen
-        name="HistoryScreen"
+        name="RunHistoryScreen"
         options={{ title: "History", headerShown: false }}
       />
       <Tabs.Screen

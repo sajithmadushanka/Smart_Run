@@ -1,6 +1,5 @@
 import { RoutePaths } from "@/constants/routes";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Route } from "expo-router";
 import { useRouter } from "expo-router";
 import { useColorScheme } from "nativewind";
 import React from "react";
@@ -34,13 +33,13 @@ export default function HomeScreen() {
       icon: <MaterialCommunityIcons name="history" size={28} color="#10b981" />,
       title: "Run History",
       desc: "Check your past runs and progress.",
-      navigate: "/Run/RunHistoryScreen",
+      navigate: "RunHistoryScreen",
     },
     {
       icon: <Ionicons name="settings" size={28} color="#10b981" />,
       title: "Settings",
       desc: "Customize your running preferences.",
-      navigate: "/Settings",
+      navigate: "SettingsScreen",
     },
   ];
 

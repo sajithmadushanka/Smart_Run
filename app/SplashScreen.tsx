@@ -20,7 +20,7 @@ export default function SplashScreen() {
       />
 
       <Text className="text-2xl font-bold text-light-text dark:text-dark-text mt-6">
-        Smart Run
+        Get Started with RunMate
       </Text>
 
       {/* Animated Run Button */}
@@ -32,14 +32,16 @@ export default function SplashScreen() {
           className="bg-green-500 px-6 py-3 rounded-full shadow-lg"
           onPress={() => {
             animationRef.current?.pause(); // stop the animation
+            console.log("Button Pressed");
             if (isLoggedIn) {
               router.replace("/(tabs)/HomeScreen");
             } else {
+              console.log("User not logged in");
               router.push("/Auth/LoginScreen");
             }
           }}
         >
-          <Text className="text-white text-lg font-bold">Run</Text>
+          <Text className="text-white text-lg font-bold">Let&apos;s GO</Text>
         </TouchableOpacity>
       </Animated.View>
     </View>

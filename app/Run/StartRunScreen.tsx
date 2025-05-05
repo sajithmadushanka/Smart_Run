@@ -1,12 +1,18 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
+import LottieView from "lottie-react-native";
 import React, { useEffect, useRef, useState } from "react";
-import { Alert, Dimensions, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 
 import { saveRunToDb } from "@/services/db";
-import LottieView from "lottie-react-native";
 import StatBox from "../../components/StatBox";
 import {
   calculateDeltaDistance,
@@ -14,11 +20,12 @@ import {
 } from "../../services/runTracker";
 import { formatDuration } from "../../utils/geoUtils";
 
-const animationRef = useRef(null);
-
 const screen = Dimensions.get("window");
+
 export default function StartRunScreen() {
-  const [tick, setTick] = useState(0);
+  const animationRef = useRef<LottieView>(null);
+  const watchId = useRef<Location.LocationSubscription | null>(null);
+
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [location, setLocation] =
@@ -27,72 +34,94 @@ export default function StartRunScreen() {
     Location.LocationObjectCoords[]
   >([]);
   const [distance, setDistance] = useState(0);
-  const [startTime, setStartTime] = useState<number | null>(null);
   const [speed, setSpeed] = useState(0);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [elapsedTime, setElapsedTime] = useState(0); // ms
+  const [isLoading, setIsLoading] = useState(false);
 
-  const watchId = useRef<Location.LocationSubscription | null>(null);
+  // Timer effect
   useEffect(() => {
-    if (!isRunning || isPaused) return;
+    let interval: number;
 
-    const interval = setInterval(() => {
-      setTick((prev) => prev + 1); // trigger re-render
-    }, 1000);
+    if (isRunning && !isPaused) {
+      interval = setInterval(() => {
+        setElapsedTime((prev) => prev + 1000);
+      }, 1000);
+    }
 
     return () => clearInterval(interval);
   }, [isRunning, isPaused]);
 
-  const startRun = async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      alert("Permission to access location was denied");
-      return;
-    }
-    const loc = await Location.getCurrentPositionAsync({});
-    setLocation(loc.coords);
-    setRouteCoords([loc.coords]);
-    setStartTime(Date.now());
-    setDistance(0);
-    setSpeed(0);
+  const handleStartRun = async () => {
+    setIsLoading(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
 
-    watchId.current = await startLocationUpdates((newCoords: any) => {
-      setLocation(newCoords);
-      setRouteCoords((prev) => {
-        const last = prev[prev.length - 1];
-        if (last) {
-          const delta = calculateDeltaDistance(last, newCoords);
-          setDistance((prev) => prev + delta);
-          setSpeed(newCoords.speed || 0);
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Denied",
+          "Location permission is required to start the run."
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      const currentLoc = await Location.getCurrentPositionAsync({});
+      setLocation(currentLoc.coords);
+      setRouteCoords([currentLoc.coords]);
+      setStartTime(Date.now());
+      setDistance(0);
+      setSpeed(0);
+      setElapsedTime(0);
+
+      watchId.current = await startLocationUpdates(
+        (newCoords: Location.LocationObjectCoords) => {
+          setLocation(newCoords);
+          setRouteCoords((prev) => {
+            const last = prev[prev.length - 1];
+            if (last) {
+              const delta = calculateDeltaDistance(last, newCoords);
+              setDistance((prevDist) => prevDist + delta);
+              setSpeed(newCoords.speed ?? 0);
+            }
+            return [...prev, newCoords];
+          });
         }
-        return [...prev, newCoords];
-      });
-    });
+      );
 
-    setIsRunning(true);
-    setIsPaused(false);
+      setIsRunning(true);
+      setIsPaused(false);
+    } catch (error) {
+      Alert.alert("Error", "Failed to start run. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const pauseRun = () => {
+  const handlePauseRun = () => {
     watchId.current?.remove();
     setIsPaused(true);
   };
 
-  const resumeRun = async () => {
-    watchId.current = await startLocationUpdates((newCoords: any) => {
-      setLocation(newCoords);
-      setRouteCoords((prev) => {
-        const last = prev[prev.length - 1];
-        if (last) {
-          const delta = calculateDeltaDistance(last, newCoords);
-          setDistance((prev) => prev + delta);
-          setSpeed(newCoords.speed || 0);
-        }
-        return [...prev, newCoords];
-      });
-    });
+  const handleResumeRun = async () => {
+    watchId.current = await startLocationUpdates(
+      (newCoords: Location.LocationObjectCoords) => {
+        setLocation(newCoords);
+        setRouteCoords((prev) => {
+          const last = prev[prev.length - 1];
+          if (last) {
+            const delta = calculateDeltaDistance(last, newCoords);
+            setDistance((prevDist) => prevDist + delta);
+            setSpeed(newCoords.speed ?? 0);
+          }
+          return [...prev, newCoords];
+        });
+      }
+    );
     setIsPaused(false);
   };
 
-  const stopRun = () => {
+  const handleStopRun = () => {
     watchId.current?.remove();
     setIsRunning(false);
     setIsPaused(false);
@@ -102,21 +131,18 @@ export default function StartRunScreen() {
       {
         text: "Yes",
         onPress: () => {
-          const duration = startTime ? Date.now() - startTime : 0;
-          const avgSpeed = distance > 0 ? distance / (duration / 3600000) : 0;
+          const avgSpeed =
+            distance > 0 ? distance / (elapsedTime / 3600000) : 0;
           saveRunToDb(
-            formatDuration(duration),
+            formatDuration(elapsedTime),
             distance,
             avgSpeed,
             routeCoords
           );
-          Alert.alert("Run Saved", "Your run was saved successfully.");
         },
       },
     ]);
   };
-
-  const duration = startTime ? Date.now() - startTime : 0 + tick * 1000;
 
   return (
     <View className="flex-1 bg-light-background dark:bg-dark-background">
@@ -147,17 +173,19 @@ export default function StartRunScreen() {
             <Text className="text-xl font-bold text-center mb-2 text-light-text dark:text-dark-text">
               {isPaused ? "Paused" : "Tracking..."}
             </Text>
+
             <View className="flex-row justify-around mt-2">
-              <StatBox label="Time" value={formatDuration(duration)} />
+              <StatBox label="Time" value={formatDuration(elapsedTime)} />
               <StatBox label="Distance" value={`${distance.toFixed(2)} km`} />
               <StatBox
                 label="Speed"
                 value={`${(speed * 3.6).toFixed(1)} km/h`}
               />
             </View>
+
             <View className="flex-row justify-around mt-6">
               <TouchableOpacity
-                onPress={isPaused ? resumeRun : pauseRun}
+                onPress={isPaused ? handleResumeRun : handlePauseRun}
                 className="bg-yellow-400 px-6 py-4 rounded-full"
               >
                 <Ionicons
@@ -167,7 +195,7 @@ export default function StartRunScreen() {
                 />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={stopRun}
+                onPress={handleStopRun}
                 className="bg-red-500 px-6 py-4 rounded-full"
               >
                 <Ionicons name="stop" size={28} color="#fff" />
@@ -176,28 +204,32 @@ export default function StartRunScreen() {
           </View>
         </>
       ) : (
-        <View className="flex-1 items-center justify-center px-6 bg-light-background dark:bg-dark-background">
+        <View className="flex-1 items-center justify-center px-6">
           <LottieView
             ref={animationRef}
             autoPlay
             loop
             style={{ width: 250, height: 250 }}
-            source={require("../../assets/animations/runner.json")} // Replace with your file path
+            source={require("../../assets/animations/runner.json")}
           />
-
           <Text className="text-2xl font-bold text-center mt-6 text-light-text dark:text-dark-text">
             Ready to Run?
           </Text>
           <Text className="text-base text-gray-500 dark:text-gray-400 text-center mt-2">
             Track your route, speed, and distance live
           </Text>
-
-          <TouchableOpacity
-            onPress={startRun}
-            className="mt-10 bg-green-500 px-10 py-4 rounded-full shadow-lg"
-          >
-            <Text className="text-white text-lg font-semibold">Start Run</Text>
-          </TouchableOpacity>
+          {isLoading ? (
+            <ActivityIndicator size="large" color="#10b981" className="mt-10" />
+          ) : (
+            <TouchableOpacity
+              onPress={handleStartRun}
+              className="mt-10 bg-green-500 px-10 py-4 rounded-full shadow-lg"
+            >
+              <Text className="text-white text-lg font-semibold">
+                Start Run
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </View>

@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const iconNameMap: Record<string, keyof typeof Ionicons.glyphMap> = {
   HomeScreen: "home-outline",
-  HistoryScreen: "time-outline",
+  RunHistoryScreen: "time-outline",
   ProfileScreen: "person-outline",
   SettingsScreen: "settings-outline",
 };
